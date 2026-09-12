@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureTasker — My Tasks</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/tasks" class="logo">🔒 SecureTasker</a>
+    <div class="nav-links">
+      <% if (user) { %>
+        <span class="nav-user">👤 <%= user.username %></span>
+        <a href="/search" class="nav-link">🔍 Search</a>
+        <a href="/admin" class="nav-link">⚙️ Admin</a>
+        <a href="/logout" class="nav-link">Logout</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1 class="section-title"><span class="icon">📋</span> My Tasks</h1>
+
+    <!-- ── New Task Form ──────────────────────────────────────────────── -->
+    <div class="card">
+      <h2>Create Task</h2>
+      <form method="POST" action="/tasks" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" placeholder="Task title…" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Optional details…"></textarea>
+        </div>
+        <div class="flex gap-2">
+          <div class="form-group" style="flex:1">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label for="attachment">Attachment</label>
+            <input type="file" id="attachment" name="attachment">
+          </div>
+        </div>
+        <!-- thumbSize drives the Buffer.allocUnsafe vulnerability (#12) -->
+        <input type="hidden" name="thumbSize" value="256">
+        <button type="submit" class="btn btn-primary">＋ Add Task</button>
+      </form>
+    </div>
+
+    <!-- ── Task List ──────────────────────────────────────────────────── -->
+    <% if (tasks.length === 0) { %>
+      <p class="text-muted">No tasks yet — create one above.</p>
+    <% } else { %>
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% tasks.forEach(task => { %>
+            <tr>
+              <td>#<%= task.id %></td>
+
+              <!-- ── Vulnerability #2 ─────────────────────────────────── -->
+              <!-- VULNERABLE: CWE-79, stored XSS — &lt;%- renders raw unescaped HTML -->
+              <td><a href="/task/<%= task.id %>"><%- task.title %></a></td>
+
+              <!-- PATCHED: Replace the &lt;%- above with &lt;%= to auto-escape HTML and prevent stored XSS -->
+
+
+              <td>
+                <span class="badge badge-<%= task.status %>"><%= task.status %></span>
+              </td>
+              <td class="text-muted"><%= task.created_at %></td>
+              <td>
+                <!-- Vulnerability #8: no CSRF token on this form (CWE-352) -->
+                <form method="POST" action="/task/<%= task.id %>/delete" style="display:inline">
+                  <button type="submit" class="btn btn-danger">✕ Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </main>
+</body>
+</html>

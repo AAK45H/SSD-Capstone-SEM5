@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureTasker — Admin Diagnostics</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/tasks" class="logo">🔒 SecureTasker</a>
+    <div class="nav-links">
+      <% if (user) { %>
+        <span class="nav-user">👤 <%= user.username %></span>
+        <a href="/search" class="nav-link">🔍 Search</a>
+        <a href="/admin" class="nav-link">⚙️ Admin</a>
+        <a href="/logout" class="nav-link">Logout</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1 class="section-title"><span class="icon">⚙️</span> Admin Diagnostics</h1>
+
+    <!-- ── Ping Utility ───────────────────────────────────────────────── -->
+    <div class="card">
+      <h2>🏓 Ping Utility</h2>
+      <p class="text-muted mb-2">Enter a hostname or IP address to ping.</p>
+      <form method="POST" action="/diagnostics/ping">
+        <div class="flex gap-2">
+          <input type="text" name="host" placeholder="e.g. 127.0.0.1" required style="flex:1">
+          <button type="submit" class="btn btn-primary">Ping</button>
+        </div>
+      </form>
+      <% if (pingResult) { %>
+        <div class="output-box"><%= pingResult %></div>
+      <% } %>
+    </div>
+
+    <!-- ── JSON Import ────────────────────────────────────────────────── -->
+    <div class="card">
+      <h2>📥 Import Tasks (JSON)</h2>
+      <p class="text-muted mb-2">
+        Paste a JSON array of task objects.<br>
+        Format: <code>[{"title":"…","description":"…","status":"pending"}]</code>
+      </p>
+      <form method="POST" action="/import">
+        <div class="form-group">
+          <label for="jsonData">JSON Data</label>
+          <textarea id="jsonData" name="jsonData" rows="5"
+                    placeholder='[{"title":"New task","description":"Details here"}]'></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Import</button>
+      </form>
+      <% if (importResult) { %>
+        <div class="alert <%= importResult.startsWith('✔') ? 'alert-success' : 'alert-error' %> mt-2">
+          <%= importResult %>
+        </div>
+      <% } %>
+    </div>
+  </main>
+</body>
+</html>

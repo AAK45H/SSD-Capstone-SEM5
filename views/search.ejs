@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureTasker — Search</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/tasks" class="logo">🔒 SecureTasker</a>
+    <div class="nav-links">
+      <% if (user) { %>
+        <span class="nav-user">👤 <%= user.username %></span>
+        <a href="/search" class="nav-link">🔍 Search</a>
+        <a href="/admin" class="nav-link">⚙️ Admin</a>
+        <a href="/logout" class="nav-link">Logout</a>
+      <% } %>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1 class="section-title"><span class="icon">🔍</span> Search Tasks</h1>
+
+    <div class="card">
+      <form method="GET" action="/search">
+        <div class="flex gap-2">
+          <input type="text" name="q" value="<%= query %>" placeholder="Search by title or description…" style="flex:1">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+    </div>
+
+    <% if (query) { %>
+      <!-- ── Vulnerability #3 ───────────────────────────────────────── -->
+      <!-- VULNERABLE: CWE-79, reflected XSS — &lt;%- renders the query parameter as raw HTML -->
+      <p class="mb-2">Results for: <strong><%- query %></strong></p>
+
+      <!-- PATCHED: To apply fix, replace &lt;%- with &lt;%= on the line above -->
+
+      <% if (tasks.length === 0) { %>
+        <p class="text-muted">No tasks match your query.</p>
+      <% } else { %>
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% tasks.forEach(task => { %>
+              <tr>
+                <td>#<%= task.id %></td>
+                <td><a href="/task/<%= task.id %>"><%- task.title %></a></td>
+                <td><span class="badge badge-<%= task.status %>"><%= task.status %></span></td>
+                <td class="text-muted"><%= task.created_at %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    <% } %>
+  </main>
+</body>
+</html>
